@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using RepositoryPatternWithUOW.Core.Interfaces;
 using RepositoryPatternWithUOW.EF.Data;
+using RepositoryPatternWithUOW.EF.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +19,8 @@ builder.Services.AddDbContext<AppDbContext>( options =>
         b => b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)
     )
 );
+
+builder.Services.AddTransient(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 
 var app = builder.Build();
 
