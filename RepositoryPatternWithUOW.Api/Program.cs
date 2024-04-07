@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using RepositoryPatternWithUOW.Core;
 using RepositoryPatternWithUOW.Core.Interfaces;
+using RepositoryPatternWithUOW.EF;
 using RepositoryPatternWithUOW.EF.Data;
 using RepositoryPatternWithUOW.EF.Repositories;
 
@@ -20,7 +22,8 @@ builder.Services.AddDbContext<AppDbContext>( options =>
     )
 );
 
-builder.Services.AddTransient(typeof(IBaseRepository<>), typeof(BaseRepository<>));
+//builder.Services.AddTransient(typeof(IBaseRepository<>), typeof(BaseRepository<>));
+builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 
 var app = builder.Build();
 
