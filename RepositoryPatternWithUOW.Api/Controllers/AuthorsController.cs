@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using RepositoryPatternWithUOW.Core;
 using RepositoryPatternWithUOW.Core.Interfaces;
 using RepositoryPatternWithUOW.Core.Models;
 
@@ -8,17 +9,17 @@ namespace RepositoryPatternWithUOW.Api.Controllers;
 [ApiController]
 public class AuthorsController : ControllerBase
 {
-    private readonly IBaseRepository<Author> _authorRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public AuthorsController(IBaseRepository<Author> authorRepository)
+    public AuthorsController(IUnitOfWork unitOfWork)
     {
-        _authorRepository = authorRepository;
+        _unitOfWork = unitOfWork;
     }
 
     [HttpGet("{id}")]
     public IActionResult GetById(int id)
     {
-        var item = _authorRepository.GetById(id);
+        var item = _unitOfWork.Authors.GetById(id);
 
         if (item is null) return NotFound();
 
@@ -28,27 +29,46 @@ public class AuthorsController : ControllerBase
     [HttpGet]
     public IActionResult GetAll()
     {
-        var items = _authorRepository.GetAll();
+        var items = _unitOfWork.Authors.GetAll();
         return Ok(items);
     }
 
-    [HttpGet("NameFind/{name}")]
-    public IActionResult GetByNameWithBooks(string name)
+    [HttpPost]
+    public IActionResult Create(Author authorDto)
     {
-        var item = _authorRepository.Find(x => x.Name == name);
-
-        if (item is null) return NotFound();
-
-        return Ok(item);
+        var author = _unitOfWork.Authors.Add(authorDto);
+        _unitOfWork.Complete();
+        return CreatedAtAction(nameof(GetById), new { id = author.Id }, author);
     }
 
-    [HttpGet("ByName/{string name}")]
-    public IActionResult GetAllByName(string name)
+    [HttpPut("{id}")]
+    public IActionResult Update(int id, Author author)
     {
-        var items = _authorRepository.FindAll(x => x.Name.Contains(name));
 
-        if (items is null) return NotFound();
+        if(author.Id != id)
+        {
+            return Conflict("IDs don't match");
+        }
 
-        return Ok(items);
+        var dbAuthor = _unitOfWork.Authors.GetById(id);
+
+        if(dbAuthor is null) return NotFound();
+
+        _unitOfWork.Authors.Update(author);
+        _unitOfWork.Complete();
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    public IActionResult Delete(int id)
+    {
+        var author = _unitOfWork.Authors.GetById(id);
+
+        if(author is null) return NotFound();
+
+        _unitOfWork.Authors.Delete(author);
+        _unitOfWork.Complete();
+        return NoContent();
     }
 }
