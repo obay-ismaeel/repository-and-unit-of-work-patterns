@@ -50,11 +50,12 @@ public class AuthorsController : ControllerBase
             return Conflict("IDs don't match");
         }
 
-        var dbAuthor = _unitOfWork.Authors.GetById(id);
+        var dbAuthor = _unitOfWork.Authors.GetById();
 
         if(dbAuthor is null) return NotFound();
 
-        _unitOfWork.Authors.Update(author);
+        dbAuthor.Name = author.Name;
+        
         _unitOfWork.Complete();
 
         return NoContent();

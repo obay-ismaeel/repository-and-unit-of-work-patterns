@@ -5,11 +5,11 @@ using RepositoryPatternWithUOW.Core;
 namespace RepositoryPatternWithUOW.Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
-public class BookController : ControllerBase
+public class BooksController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;
 
-    public BookController(IUnitOfWork unitOfWork)
+    public BooksController(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
     }
@@ -34,10 +34,6 @@ public class BookController : ControllerBase
     [HttpPost]
     public IActionResult Create(Book bookDto)
     {
-        var author = _unitOfWork.Authors.GetById(bookDto.AuthorId);
-        
-        if(author is null) return NotFound();
-        
         var book = _unitOfWork.Books.Add(bookDto);
         _unitOfWork.Complete();
         return CreatedAtAction(nameof(GetById), new { id = book.Id }, book);
@@ -60,7 +56,9 @@ public class BookController : ControllerBase
 
         if (author is null) return NotFound();
 
-        _unitOfWork.Books.Update(book);
+        dbBook.AuthorId = book.AuthorId;
+        dbBook.Title = book.Title;
+        
         _unitOfWork.Complete();
 
         return NoContent();
